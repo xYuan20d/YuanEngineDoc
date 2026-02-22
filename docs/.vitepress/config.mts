@@ -6,6 +6,7 @@ export default defineConfig({
   title: "YuanEngine",
   titleTemplate: "YuanEngine",
   description: "一个开源的游戏引擎",
+  ignoreDeadLinks: true,
   lang: "zh-CN",
   themeConfig: {
     logo: '/logo.svg',
