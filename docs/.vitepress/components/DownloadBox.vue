@@ -13,23 +13,95 @@
     </svg>
     
     <div class="card-content">
-      <h3>YuanEngine 核心下载</h3>
-      <p class="meta-info">
-        <span class="sketch-tag">v1.0.2</span>
-        <span class="divider">/</span>
-        <span class="sketch-tag">45MB</span>
-      </p>
-      <button @click="download" class="download-btn sketch-btn">
-        立即下载 (Windows/MacOS)
-      </button>
-    </div>
+    <h3>YuanEngine 核心下载</h3>
+    <p class="meta-info">
+      <span class="sketch-tag">{{ version }}</span>
+      <span class="divider"> / </span>
+      <span class="sketch-tag">更新于: {{ updateAt }}</span>
+    </p>
+    
+    <button 
+      @click="download" 
+      class="download-btn sketch-btn"
+      :disabled="isFetching || !downloadUrl"
+    >
+      <span v-if="isFetching">正在检查更新...</span>
+      <span v-else-if="isDownloading">正在拉起下载...</span>
+      <span v-else>立即下载 (Windows)</span>
+    </button>
+  </div>
   </div>
 </template>
 
 <script setup>
+import { ref, onMounted } from 'vue';
+
+// 响应式变量
+const version = ref('...');
+const updateAt = ref('...');
+const downloadUrl = ref('');
+const isFetching = ref(true);
+const isDownloading = ref(false);
+
+// 格式化日期的简单工具函数
+const formatDate = (isoString) => {
+  return new Date(isoString).toLocaleDateString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  });
+};
+
+const fetchLatestRelease = async () => {
+  try {
+    const response = await fetch('https://api.github.com/repos/xYuan20d/YuanEngine/releases/latest');
+    const data = await response.json();
+    
+    // 填充版本和时间
+    version.value = data.tag_name;
+    updateAt.value = formatDate(data.published_at);
+
+    // 预存下载地址
+    const exeAsset = data.assets.find(asset => 
+      asset.name.endsWith('.exe') && !asset.name.endsWith('.blockmap')
+    );
+    
+    if (exeAsset) {
+      downloadUrl.value = exeAsset.browser_download_url;
+    }
+  } catch (error) {
+    console.error('获取版本信息失败:', error);
+    version.value = '获取失败';
+  } finally {
+    isFetching.value = false;
+  }
+};
+
 const download = () => {
-  window.open('你的下载链接', '_blank')
-}
+  if (!downloadUrl.value) {
+    alert('暂无可用安装包');
+    return;
+  }
+
+  isDownloading.value = true;
+  
+  // 此时无需再 fetch，直接触发预存好的链接
+  const link = document.createElement('a');
+  link.href = downloadUrl.value;
+  // 给 link 增加一些属性确保触发下载
+  link.setAttribute('download', '');
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+
+  // 模拟一个下载开始后的反馈
+  setTimeout(() => {
+    isDownloading.value = false;
+  }, 1000);
+};
+
+// 初始化获取
+onMounted(fetchLatestRelease);
 </script>
 
 <style scoped>

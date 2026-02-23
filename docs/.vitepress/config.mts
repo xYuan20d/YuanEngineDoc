@@ -55,7 +55,7 @@ export default defineConfig({
     ],
 
     socialLinks: [
-      { icon: 'github', link: 'https://github.com/vuejs/vitepress' }
+      { icon: 'github', link: 'https://github.com/xYuan20d/YuanEngine' }
     ],
   },
   head: [['link', { rel: 'icon', href: '/logo.svg', type: 'image/svg+xml' }]]
